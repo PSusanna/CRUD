@@ -1,0 +1,34 @@
+# Use the base .NET 8.0 image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+
+WORKDIR /app
+EXPOSE 7004
+EXPOSE 7005
+
+# Use the SDK image to build the project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+
+# Copy the csproj files
+COPY ["CRUDMailSender/CRUDMailSender.csproj", "CRUDMailSender/"]
+COPY ["CRUDShared/CRUDShared.csproj", "CRUDShared/"]
+RUN dotnet restore "CRUDMailSender/CRUDMailSender.csproj"
+
+# Copy the entire CRUDMailSender and CRUDShared directories
+COPY ./CRUDMailSender ./CRUDMailSender
+COPY ./CRUDShared ./CRUDShared
+
+WORKDIR "/src/CRUDMailSender"
+RUN dotnet build "CRUDMailSender.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# Publish the project to be copied to the final image
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "CRUDMailSender.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# Final production image
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "CRUDMailSender.dll"]

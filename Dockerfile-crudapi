@@ -1,0 +1,34 @@
+# Use the base .NET 8.0 image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+
+WORKDIR /app
+EXPOSE 7002
+EXPOSE 7003
+
+# Use the SDK image to build the project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+
+# Copy the csproj files
+COPY ["CRUD/CRUD.csproj", "CRUD/"]
+COPY ["CRUDShared/CRUDShared.csproj", "CRUDShared/"]
+RUN dotnet restore "CRUD/CRUD.csproj"
+
+# Copy the entire CRUD and CRUDShared directories
+COPY ./CRUD ./CRUD
+COPY ./CRUDShared ./CRUDShared
+
+WORKDIR "/src/CRUD"
+RUN dotnet build "CRUD.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# Publish the project to be copied to the final image
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "CRUD.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# Final production image
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "CRUD.dll"]

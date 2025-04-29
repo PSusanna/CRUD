@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crud-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crud-api
+  template:
+    metadata:
+      labels:
+        app: crud-api
+    spec:
+      containers:
+      - name: crud-api
+        image: crud-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 7002
+          hostPort: 7002
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+        - name: ASPNETCORE_HTTP_PORTS
+          value: "7002"
+        - name: MongoDbSettings__ConnectionString
+          value: mongodb://admin:password@mongodb:27017
+        - name: MongoDbSettings__DatabaseName
+          value: TestDb
+        - name: RabbitSettings__Host
+          value: rabbitmq
+        - name: RabbitSettings__Username
+          value: guest
+        - name: RabbitSettings__Password
+          value: guest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crud-api
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 7002
+    targetPort: 7002
+  selector:
+    app: crud-api

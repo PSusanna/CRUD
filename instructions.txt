@@ -1,0 +1,19 @@
+instructions:
+
+in C:\Users\susan\OneDrive\Desktop\CRUDv3\CRUD open terminal
+
+
+docker build -f Dockerfile-crudapi -t crud-api .
+docker build -f Dockerfile-crudmailsender -t crud-mailsender .
+cd .\kubernetes\
+kind create cluster --name crud-cluster --config kind-config.yaml
+docker save -o crud-api.tar crud-api:latest
+docker save -o crud-mailsender.tar crud-mailsender:latest
+kind load docker-image crud-api:latest --name crud-cluster
+kind load docker-image crud-mailsender:latest --name crud-cluster
+kubectl apply -f mongo-deployment.yaml
+kubectl apply -f rabbitmq-deployment.yaml
+kubectl apply -f crudapi-deployment.yaml
+kubectl apply -f crudmailsender-deployment.yaml
+
+kubectl get pods - until all to be Running

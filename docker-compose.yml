@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  mongocrud:
+    image: mongo:latest
+    container_name: mongodbcrud
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+
+  rabbitmqcrud:
+    image: rabbitmq:management
+    container_name: rabbitmqcrud
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app_network
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  crudapi:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-crudapi
+    container_name: CRUD
+    depends_on:
+    - mongocrud
+    - rabbitmqcrud
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development 
+      - ASPNETCORE_HTTP_PORTS=7002
+      - MongoDbSettings__ConnectionString=mongodb://admin:password@mongodbcrud:27017
+      - MongoDbSettings__DatabaseName=TestDb
+      - MongoDbSettings__UsersCollectionName=Users
+      - RabbitSettings__Host=rabbitmqcrud
+      - RabbitSettings__Username=guest
+      - RabbitSettings__Password=guest
+      - CronJobs__UsersJob=0 */1 * * * ?
+    ports:
+      - "7002:7002"
+    restart: always
+    networks:
+      - app_network
+
+  mailsender:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-crudmailsender
+    container_name: CRUDMailSender
+    depends_on:
+    - mongocrud
+    - rabbitmqcrud
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=7004
+      - RabbitSettings__Host=rabbitmqcrud
+      - RabbitSettings__Username=guest
+      - RabbitSettings__Password=guest
+      - SMTPConfig__Server=smtp.gmail.com
+      - SMTPConfig__Port=587
+      - SMTPConfig__Username=susotest374
+      - SMTPConfig__Password=uprdpjoetnrcaqji
+      - SMTPConfig__From=susotest374@gmail.com
+    ports:
+      - "7004:7004"
+    restart: always
+    networks:
+      - app_network
+
+volumes:
+  mongo_data:
+  rabbitmq_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge

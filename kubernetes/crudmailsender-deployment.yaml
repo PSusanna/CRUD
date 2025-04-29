@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crudmailsender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crudmailsender
+  template:
+    metadata:
+      labels:
+        app: crudmailsender
+    spec:
+      containers:
+      - name: crudmailsender
+        image: crud-mailsender:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 7004
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+        - name: ASPNETCORE_HTTP_PORTS
+          value: "7004"
+        - name: RabbitSettings__Host
+          value: rabbitmq
+        - name: RabbitSettings__Username
+          value: guest
+        - name: RabbitSettings__Password
+          value: guest
+        - name: SMTPConfig__Server
+          value: smtp.gmail.com
+        - name: SMTPConfig__Port
+          value: "587"
+        - name: SMTPConfig__Username
+          value: susotest374
+        - name: SMTPConfig__Password
+          value: uprdpjoetnrcaqji
+        - name: SMTPConfig__From
+          value: susotest374@gmail.com
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crudmailsender
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 7004
+    targetPort: 7004
+  selector:
+    app: crudmailsender
