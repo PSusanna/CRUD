@@ -1,6 +1,6 @@
 instructions:
 
-in C:\Users\susan\OneDrive\Desktop\CRUDv3\CRUD open terminal
+in the root folder open terminal
 
 
 docker build -f Dockerfile-crudapi -t crud-api .
@@ -11,6 +11,9 @@ docker save -o crud-api.tar crud-api:latest
 docker save -o crud-mailsender.tar crud-mailsender:latest
 kind load docker-image crud-api:latest --name crud-cluster
 kind load docker-image crud-mailsender:latest --name crud-cluster
+kubectl apply -f mongodb-secret.yaml
+kubectl apply -f rabbitmq-secret.yaml
+kubectl apply -f smtp-secret.yaml
 kubectl apply -f mongo-deployment.yaml
 kubectl apply -f rabbitmq-deployment.yaml
 kubectl apply -f crudapi-deployment.yaml
