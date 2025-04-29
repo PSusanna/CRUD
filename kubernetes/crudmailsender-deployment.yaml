@@ -26,19 +26,40 @@ spec:
         - name: RabbitSettings__Host
           value: rabbitmq
         - name: RabbitSettings__Username
-          value: guest
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: username
         - name: RabbitSettings__Password
-          value: guest
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: password
         - name: SMTPConfig__Server
-          value: smtp.gmail.com
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: server
         - name: SMTPConfig__Port
-          value: "587"
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: port
         - name: SMTPConfig__Username
-          value: susotest374
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: username
         - name: SMTPConfig__Password
-          value: uprdpjoetnrcaqji
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: password
         - name: SMTPConfig__From
-          value: susotest374@gmail.com
+          valueFrom:
+            secretKeyRef:
+              name: smtp-secret
+              key: mailfrom
 ---
 apiVersion: v1
 kind: Service

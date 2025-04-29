@@ -20,9 +20,15 @@ spec:
         - containerPort: 15672
         env:
         - name: RABBITMQ_DEFAULT_USER
-          value: guest
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: username
         - name: RABBITMQ_DEFAULT_PASS
-          value: guest
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: password
         volumeMounts:
         - name: rabbitmq-data
           mountPath: /var/lib/rabbitmq
